@@ -159,6 +159,41 @@ app.delete('/api/party/:id', (req, res) => {
   });
 });
 
+// Update a candidate's party
+app.put('/api/candidate/:id', (req, res) => {
+  // create sql
+  const sql = `UPDATE candidates SET party_id = ?
+               WHERE id = ?`;
+
+  // check for valid input
+  const errors = inputCheck(req.body, 'party_id');
+  if (errors) {
+    res.status(400).json({ error: errors });
+    return;
+  }
+
+  // pull variables from request
+  const params = [req.body.party_id, req.params.id];
+
+  //execute db query
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      // check if a record was found
+    } else if (!result.affectedRows) {
+      res.json({
+        message: 'Candidate not found'
+      });
+    } else {
+      res.json({
+        message: 'success',
+        data: req.body,
+        changes: result.affectedRows
+      });
+    }
+  });
+});
+
 // Default response for any other request (Not Found)
 app.use((req, res) => {
   res.status(404).end();
